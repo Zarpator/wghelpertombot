@@ -4,12 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter @Setter
-public class getMeAnswer {
-	private boolean ok;
+public class TgmAnswerNormal extends TgmAnswerSuperClass {
 	private TgmPossibleResult result;
-	
-	@Override
-	public String toString(){
-		return "" + ok;
-	}
 }
