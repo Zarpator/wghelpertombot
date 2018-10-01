@@ -13,7 +13,7 @@ public class MessageForTelegramServers {
 
 	private HttpMethod method;
 	private String schemeAndHost = "https://api.telegram.org/";
-	private String token = "626144048:AAGHqF_B78gDR54v9qFWKEeaDY0eXbbHfjY";
+	private String token;
 	private String command;
 	private String[] parameters;
 	

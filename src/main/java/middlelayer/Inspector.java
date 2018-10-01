@@ -10,26 +10,35 @@ import servicelayer.sending.PresetMessageForSendMessage;
 
 public class Inspector {
 
-	public ArrayList<MessageForTelegramServers> analyzeAndGiveAppropriateMessages(
+	public ArrayList<MessageForTelegramServers> analyzeAnswerWithUpdatesAndGiveAppropriateMessageArrayList(
 			TgmAnswerWithUpdateArray answerWithUpdates) {
 
 		TgmUpdate[] updatesArray = answerWithUpdates.getResult();
+		
 		ArrayList<MessageForTelegramServers> answers = new ArrayList<MessageForTelegramServers>();
 
-		if (updatesArray.length != 0) {
-			for (TgmUpdate update : updatesArray) {
-				TgmMessage message = update.getMessage();
+		for (TgmUpdate update : updatesArray) {
 
-				String name = message.getFrom().getFirst_name();
-				String text = message.getText();
-				int id = message.getChat().getId();
+			MessageForTelegramServers messageToServer;
 
-				answers.add(new MessageForTelegramServers(
-						new PresetMessageForSendMessage("Hi " + name + "! Du schriebst: " + text, id)));
-			}
+			messageToServer = analyzeAndAnswer(update);
+
+			answers.add(messageToServer);
 		}
 
 		return answers;
+	}
+
+	private MessageForTelegramServers analyzeAndAnswer(TgmUpdate update) {
+
+		TgmMessage message = update.getMessage();
+
+		String name = message.getFrom().getFirst_name();
+		String text = message.getText();
+		int id = message.getChat().getId();
+
+		return new MessageForTelegramServers(
+				new PresetMessageForSendMessage("Hi " + name + "! Du schriebst: " + text, id));
 
 	}
 }

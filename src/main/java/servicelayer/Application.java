@@ -37,7 +37,7 @@ public class Application {
 			
 			TgmAnswerWithUpdateArray answer = myMessageSender.analyzeAndGiveAppropriateAnswer(new MessageForTelegramServers(new PresetMessageForGetUpdates()), TgmAnswerWithUpdateArray.class);
 			
-			ArrayList<MessageForTelegramServers> messagesToReturn = myInspector.analyzeAndGiveAppropriateMessages(answer);
+			ArrayList<MessageForTelegramServers> messagesToReturn = myInspector.analyzeAnswerWithUpdatesAndGiveAppropriateMessageArrayList(answer);
 			
 			for (MessageForTelegramServers message : messagesToReturn) {
 				TgmAnswerWithMessage returnedResponseFromTgmServer = myMessageSender.analyzeAndGiveAppropriateAnswer(message, TgmAnswerWithMessage.class);
