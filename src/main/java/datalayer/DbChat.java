@@ -7,6 +7,5 @@ import lombok.Setter;
 
 public class DbChat {
 	private int id;
-	
 	private boolean isInDialog;
 }
