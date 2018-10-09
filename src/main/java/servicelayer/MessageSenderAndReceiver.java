@@ -5,11 +5,11 @@ import org.springframework.web.client.RestTemplate;
 import servicelayer.receiving.TgmAnswerSuperClass;
 import servicelayer.receiving.TgmAnswerWithUpdateArray;
 import servicelayer.receiving.telegramobjects.TgmUpdate;
-import servicelayer.sending.MessageForTelegramServers;
+import servicelayer.sending.HttpMessageForTelegramServers;
 import servicelayer.sending.PresetMessageForGetUpdates;
 
 public class MessageSenderAndReceiver {
-	public <T extends TgmAnswerSuperClass> T analyzeAndGiveAppropriateAnswer(MessageForTelegramServers message,
+	public <T extends TgmAnswerSuperClass> T analyzeAndGiveAppropriateAnswer(HttpMessageForTelegramServers message,
 			Class<T> typeOfTheTgmAnswer) {
 
 		String url = buildURL(message);
@@ -22,7 +22,7 @@ public class MessageSenderAndReceiver {
 		return answer;
 	}
 
-	private <T extends TgmAnswerSuperClass> void incrementOffsetIfItsUpdateRequest(MessageForTelegramServers message,
+	private <T extends TgmAnswerSuperClass> void incrementOffsetIfItsUpdateRequest(HttpMessageForTelegramServers message,
 			T answer) {
 		if (message.getCommand().equals("getUpdates")) {
 
@@ -48,7 +48,7 @@ public class MessageSenderAndReceiver {
 		return outputParameterString;
 	}
 
-	private String buildURL(MessageForTelegramServers message) {
+	private String buildURL(HttpMessageForTelegramServers message) {
 		String url = "";
 		url += message.getSchemeAndHost();
 		url += "/bot" + message.getToken();

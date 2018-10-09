@@ -12,8 +12,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MessageForTelegramServers {
-	public MessageForTelegramServers(PresetMessage presetMessage) {
+public class HttpMessageForTelegramServers {
+	public HttpMessageForTelegramServers(PresetMessage presetMessage) {
 		this.method = presetMessage.getMethod();
 		this.command = presetMessage.getCommand();
 		this.parameters = presetMessage.getParameters();

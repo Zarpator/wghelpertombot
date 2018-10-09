@@ -2,26 +2,34 @@ package middlelayer;
 
 import java.util.ArrayList;
 
+import datalayer.DbChat;
 import servicelayer.receiving.TgmAnswerWithUpdateArray;
-import servicelayer.receiving.telegramobjects.TgmMessage;
+import servicelayer.receiving.telegramobjects.TgmChat;
 import servicelayer.receiving.telegramobjects.TgmUpdate;
-import servicelayer.sending.MessageForTelegramServers;
+import servicelayer.receiving.telegramobjects.TgmUser;
+import servicelayer.sending.HttpMessageForTelegramServers;
 import servicelayer.sending.PresetMessageForSendMessage;
 
 public class Inspector {
 
-	public ArrayList<MessageForTelegramServers> analyzeAnswerWithUpdatesAndGiveAppropriateMessageArrayList(
+	DialogHandler myDH = new DialogHandler();
+	DataAccessObject myDAO = new DataAccessObject();
+	
+	private TgmUpdate[] updatesArray;
+	
+
+	public ArrayList<HttpMessageForTelegramServers> analyzeAnswerWithUpdatesAndGiveAppropriateMessageArrayList(
 			TgmAnswerWithUpdateArray answerWithUpdates) {
 
-		TgmUpdate[] updatesArray = answerWithUpdates.getResult();
+		updatesArray = answerWithUpdates.getResult();
 
-		ArrayList<MessageForTelegramServers> answers = new ArrayList<MessageForTelegramServers>();
+		ArrayList<HttpMessageForTelegramServers> answers = new ArrayList<HttpMessageForTelegramServers>();
 
 		for (TgmUpdate update : updatesArray) {
 
-			MessageForTelegramServers messageToServer;
+			HttpMessageForTelegramServers messageToServer;
 
-			messageToServer = analyzeAndAnswer(update);
+			messageToServer = analyzeAndAnswerASingleUpdate(update);
 
 			answers.add(messageToServer);
 		}
@@ -29,40 +37,48 @@ public class Inspector {
 		return answers;
 	}
 
-	private MessageForTelegramServers analyzeAndAnswer(TgmUpdate update) {
-
-		TgmMessage message = update.getMessage();
-		MessageForTelegramServers messageToReturnToTelegramAPI;
-
-		// Can later also be something else than a message to the bot!! --> Errors
-		// possible
-		if (message == null) {
-			System.out.println("There is no Message in the received Update!");
-			return null;
+	private HttpMessageForTelegramServers analyzeAndAnswerASingleUpdate(TgmUpdate update) {
+		TgmUser messageSender = update.getMessage().getFrom();
+		if (messageSenderIsMissingInDatabase(messageSender)) {
+			myDAO.addNewUser(messageSender);
 		}
-
-		switch (message.getText()) {
-		case "/start":
-			messageToReturnToTelegramAPI = doStartRoutine(message);
-			break;
-		default:
-			messageToReturnToTelegramAPI = answerWithUsersOwnMessage(message);
-			break;
+		
+		TgmChat messageChat = update.getMessage().getChat();
+		if(sendingChatIsMissingInDatabase(messageChat)) {
+			myDAO.addNewChat(messageChat);
 		}
+		
+		MiddlelayerHttpAnswerForTelegram answerFromDialogHandler = myDH.processUpdateAndReturnAppropriateAnswer(update);
+		
+		PresetMessageForSendMessage presetMessage = new PresetMessageForSendMessage(answerFromDialogHandler.getText(), answerFromDialogHandler.getChatId());
+		
+		HttpMessageForTelegramServers messageToReturnToTelegramAPI = new HttpMessageForTelegramServers(presetMessage);
 
 		return messageToReturnToTelegramAPI;
 	}
 	
-	private MessageForTelegramServers doStartRoutine(TgmMessage message) {
-		return null;
+	public void printAllDbChatsToConsole() {
+		System.out.println("Alle Chats in der Datenbank:");
+		for (DbChat chat : myDAO.getAllChatsAsArrayList()) {
+			System.out.println(chat.getId());
+		}
 	}
 
-	private MessageForTelegramServers answerWithUsersOwnMessage(TgmMessage message) {
-		String name = message.getFrom().getFirst_name();
-		String text = message.getText();
-		int id = message.getChat().getId();
-		
-		return new MessageForTelegramServers(
-				new PresetMessageForSendMessage("Hi " + name + "! Du schriebst: " + text, id));
+	private boolean sendingChatIsMissingInDatabase(TgmChat messageChat) {
+		try {
+			myDAO.getChatById(messageChat.getId());
+		} catch (EntityNotFoundException e) {
+			return true;
+		}
+		return false;
+	}
+
+	private boolean messageSenderIsMissingInDatabase(TgmUser messageSender) {
+		try {
+			myDAO.getDbUserById(messageSender.getId());
+		} catch (EntityNotFoundException e) {
+			return true;
+		}
+		return false;
 	}
 }

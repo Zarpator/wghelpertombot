@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import middlelayer.Inspector;
 import servicelayer.receiving.TgmAnswerWithMessage;
 import servicelayer.receiving.TgmAnswerWithUpdateArray;
-import servicelayer.sending.MessageForTelegramServers;
+import servicelayer.sending.HttpMessageForTelegramServers;
 import servicelayer.sending.PresetMessageForGetUpdates;
 
 @SpringBootApplication
@@ -23,12 +23,12 @@ public class Application {
 			Inspector myInspector = new Inspector();
 
 			TgmAnswerWithUpdateArray answer = myMessageSender.analyzeAndGiveAppropriateAnswer(
-					new MessageForTelegramServers(new PresetMessageForGetUpdates()), TgmAnswerWithUpdateArray.class);
+					new HttpMessageForTelegramServers(new PresetMessageForGetUpdates()), TgmAnswerWithUpdateArray.class);
 
-			ArrayList<MessageForTelegramServers> messagesToReturn = myInspector
+			ArrayList<HttpMessageForTelegramServers> messagesToReturn = myInspector
 					.analyzeAnswerWithUpdatesAndGiveAppropriateMessageArrayList(answer);
 
-			for (MessageForTelegramServers message : messagesToReturn) {
+			for (HttpMessageForTelegramServers message : messagesToReturn) {
 				if (message != null) {
 					TgmAnswerWithMessage returnedResponseFromTgmServer = myMessageSender
 							.analyzeAndGiveAppropriateAnswer(message, TgmAnswerWithMessage.class);
@@ -37,9 +37,9 @@ public class Application {
 				} else {
 					System.out.println("Received empty Message from Inspector");
 				}
-				
-				
 			}
+			
+			myInspector.printAllDbChatsToConsole();
 
 			try {
 				TimeUnit.SECONDS.sleep(1);

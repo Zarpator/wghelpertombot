@@ -1,5 +1,5 @@
 package servicelayer.sending;
-import servicelayer.sending.MessageForTelegramServers.HttpMethod;
+import servicelayer.sending.HttpMessageForTelegramServers.HttpMethod;
 
 public abstract class PresetMessage {
 	public abstract HttpMethod getMethod();

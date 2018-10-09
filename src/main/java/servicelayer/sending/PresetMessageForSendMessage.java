@@ -2,7 +2,7 @@ package servicelayer.sending;
 
 import lombok.Getter;
 import lombok.Setter;
-import servicelayer.sending.MessageForTelegramServers.HttpMethod;
+import servicelayer.sending.HttpMessageForTelegramServers.HttpMethod;
 
 @Getter @Setter
 public class PresetMessageForSendMessage extends PresetMessage{
