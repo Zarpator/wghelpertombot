@@ -14,22 +14,47 @@ public class DialogHandler {
 
 		MiddlelayerHttpAnswerForTelegram messageToReturnToInspector;
 
+		DbUser dbUserWhoSentMessage;
+		int idOfUserWhoSentMessage = message.getFrom().getId();
+		try {
+			dbUserWhoSentMessage = myDAO.getDbUserById(idOfUserWhoSentMessage);
+		} catch (EntityNotFoundException e) {
+			messageToReturnToInspector = new MiddlelayerHttpAnswerForTelegram();
+			messageToReturnToInspector.setText(
+					"Ich konnte dich nicht im System finden, da ist wohl etwas schief gelaufen. Hast du schon mit /start alles eingerichtet? Sonst frag mal meinen Entwickler :)");
+			messageToReturnToInspector.setChatId(idOfUserWhoSentMessage);
+			return messageToReturnToInspector;
+		}
+		
+		DbChat dbChatWhereCommandWasGiven;
+		int idOfChatWhereCommandWasGiven = message.getChat().getId();
+		try {
+			dbChatWhereCommandWasGiven = myDAO.getChatById(idOfChatWhereCommandWasGiven);
+		} catch (EntityNotFoundException e) {
+			messageToReturnToInspector = new MiddlelayerHttpAnswerForTelegram();
+			messageToReturnToInspector.setText(
+					"Ich konnte deinen Chat nicht im System finden, da ist wohl etwas schief gelaufen. Hast du schon mit /start alles eingerichtet? Sonst frag mal meinen Entwickler :)");
+			messageToReturnToInspector.setChatId(idOfChatWhereCommandWasGiven);
+			return messageToReturnToInspector;
+		}
+		
+		
 		if (chatIsAlreadyInDialog(message.getChat().getId())) {
 			messageToReturnToInspector = getNextMessageInPresentDialog(message);
 		} else {
-			messageToReturnToInspector = getFirstMessageInNewDialog(message);
+			messageToReturnToInspector = getFirstMessageInNewDialog(message, dbUserWhoSentMessage, dbChatWhereCommandWasGiven);
 		}
 
 		return messageToReturnToInspector;
 	}
 
-	private MiddlelayerHttpAnswerForTelegram getFirstMessageInNewDialog(TgmMessage message) {
+	private MiddlelayerHttpAnswerForTelegram getFirstMessageInNewDialog(TgmMessage message, DbUser userWhoAsked, DbChat chatWhereCommandWasGiven) {
 
 		switch (message.getText()) {
 		case "/start":
-			return doStartRoutine(message);
+			return doStartRoutine(userWhoAsked, chatWhereCommandWasGiven);
 		case "/mytask":
-			return getNextTask(message);
+			return getNextTask(userWhoAsked, chatWhereCommandWasGiven);
 		default:
 			return answerWithUsersOwnMessage(message);
 		}
@@ -60,36 +85,28 @@ public class DialogHandler {
 		return chatToCheck.getIsInDialog();
 	}
 
-	private MiddlelayerHttpAnswerForTelegram getNextTask(TgmMessage incommingMessage) {
-		MiddlelayerHttpAnswerForTelegram returnMessage = new MiddlelayerHttpAnswerForTelegram();
+	private MiddlelayerHttpAnswerForTelegram getNextTask(DbUser userWhoAsked, DbChat chatWhereCommandWasGiven) {
+		MiddlelayerHttpAnswerForTelegram messageForDialogHandler = new MiddlelayerHttpAnswerForTelegram();
 
-		int userId = incommingMessage.getFrom().getId();
+		messageForDialogHandler.setChatId(chatWhereCommandWasGiven.getId());
 
-		DbUser userRepresentationInDb;
-		try {
-			userRepresentationInDb = myDAO.getDbUserById(userId);
-		} catch (EntityNotFoundException e) {
-			returnMessage.setChatId(userId);
-			returnMessage.setText(
-					"Ich konnte dich nicht im System finden, da ist wohl etwas schief gelaufen. Hast du schon mit /start alles eingerichtet? Sonst frag mal meinen Entwickler :)");
-			return returnMessage;
+		String nextTask = userWhoAsked.getNextTask();
+
+		if (nextTask == null) {
+			messageForDialogHandler.setText("Du hast nichts zu tun :)");
+		} else {
+			messageForDialogHandler.setText(nextTask);
 		}
-
-		int chatIdFromSender = incommingMessage.getChat().getId();
-		returnMessage.setChatId(chatIdFromSender);
-
-		String nextTask = userRepresentationInDb.getNextTask();
-		returnMessage.setText(nextTask);
-
-		return returnMessage;
+		return messageForDialogHandler;
 	}
 
-	private MiddlelayerHttpAnswerForTelegram doStartRoutine(TgmMessage message) {
+	private MiddlelayerHttpAnswerForTelegram doStartRoutine(DbUser userWhoAsked, DbChat chatWhereCommandWasGiven) {
 
 		MiddlelayerHttpAnswerForTelegram messageForDialogHandler = new MiddlelayerHttpAnswerForTelegram();
 
-		messageForDialogHandler.setChatId(message.getChat().getId());
+		messageForDialogHandler.setChatId(chatWhereCommandWasGiven.getId());
 		messageForDialogHandler.setText("Hallo! Welche Räume müsst ihr in eurer WG putzen?");
+
 		return messageForDialogHandler;
 	}
 

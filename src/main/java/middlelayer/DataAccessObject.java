@@ -38,6 +38,7 @@ public class DataAccessObject {
 		DbUser newUserInDb = new DbUser();
 
 		newUserInDb.setId(unpersistedTgmUser.getId());
+		newUserInDb.setFirstname(unpersistedTgmUser.getFirst_name());
 
 		allUsers.add(newUserInDb);
 	}
@@ -52,6 +53,10 @@ public class DataAccessObject {
 
 	public ArrayList<DbChat> getAllChatsAsArrayList() {
 		return allChats;
+	}
+
+	public ArrayList<DbUser> getAllUsersAsArrayList() {
+		return allUsers;
 	}
 
 }

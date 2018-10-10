@@ -64,6 +64,13 @@ public class Inspector {
 		}
 	}
 
+	public void printAllDbUsersToConsole() {
+		System.out.println("Alle User in der Datenbank:");
+		for (DbUser user : myDAO.getAllUsersAsArrayList()) {
+			System.out.println(user.getFirstname());
+		}
+	}
+
 	private boolean sendingChatIsMissingInDatabase(TgmChat messageChat) {
 		try {
 			myDAO.getChatById(messageChat.getId());

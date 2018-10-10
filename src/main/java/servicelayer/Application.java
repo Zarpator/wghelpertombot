@@ -40,6 +40,7 @@ public class Application {
 			}
 			
 			myInspector.printAllDbChatsToConsole();
+			myInspector.printAllDbUsersToConsole();
 
 			try {
 				TimeUnit.SECONDS.sleep(1);
