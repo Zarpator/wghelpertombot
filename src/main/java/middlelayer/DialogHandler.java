@@ -2,7 +2,7 @@ package middlelayer;
 
 import datalayer.DbChat;
 import datalayer.DbUser;
-import middlelayer.dialogs.AbstractDialog;
+import middlelayer.dialogs.AbstractFullDialog;
 import middlelayer.dialogs.AnswerwithusersownmessageDialog;
 import middlelayer.dialogs.MytaskDialog;
 import middlelayer.dialogs.StartDialog;
@@ -42,22 +42,8 @@ public class DialogHandler {
 			messageToReturnToInspector.setChatId(idOfChatWhereCommandWasGiven);
 			return messageToReturnToInspector;
 		}
-
-		// neu (dialog unabhängig von Chatstatus durchführen, User hat ja Eigenschaft
-		// dialogType und dialogNum)
-
 		messageToReturnToInspector = getDialogMessageByUsingSuitingDialog(message, dbUserWhoSentMessage,
 				dbChatWhereCommandWasGiven);
-
-		// alt
-		/*
-		 * if (chatIsAlreadyInDialog(message.getChat().getId())) {
-		 * messageToReturnToInspector = getNextMessageInPresentDialog(message,
-		 * dbUserWhoSentMessage, dbChatWhereCommandWasGiven); } else {
-		 * messageToReturnToInspector = getFirstMessageInNewDialog(message,
-		 * dbUserWhoSentMessage, dbChatWhereCommandWasGiven); }
-		 */
-
 		return messageToReturnToInspector;
 	}
 
@@ -74,17 +60,20 @@ public class DialogHandler {
 			currentDialogOfChat = message.getText();
 		}
 
-		AbstractDialog dialogToDo;
+		AbstractFullDialog dialogToDo;
 		switch (currentDialogOfChat) {
 		case "/start":
 			dialogToDo = new StartDialog();
+			dbChatWhereCommandWasGiven.setCurrentOngoingDialog("/start");
 			break;
 		case "/mytask":
 			dialogToDo = new MytaskDialog();
+			dbChatWhereCommandWasGiven.setCurrentOngoingDialog("/mytask");
 			break;
 		default:
 			System.out.println("no known command in currentOngoingDialog of the Chat or in Message of the User found");
 			dialogToDo = new AnswerwithusersownmessageDialog();
+			dbChatWhereCommandWasGiven.setCurrentOngoingDialog("/getanswerwithusersownmessage");
 			break;
 		}
 
@@ -95,7 +84,7 @@ public class DialogHandler {
 	}
 
 	private MiddlelayerHttpAnswerForTelegram getMessageByGettingSuitingMessageInDialogsMessageList(
-			AbstractDialog chosenDialog, DbUser dbUserWhoSentMessage, DbChat dbChatWhereCommandWasGiven,
+			AbstractFullDialog chosenDialog, DbUser dbUserWhoSentMessage, DbChat dbChatWhereCommandWasGiven,
 			TgmMessage message) {
 
 		MiddlelayerHttpAnswerForTelegram returnMessage;

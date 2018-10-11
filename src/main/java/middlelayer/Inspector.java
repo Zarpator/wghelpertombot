@@ -51,6 +51,10 @@ public class Inspector {
 		
 		MiddlelayerHttpAnswerForTelegram answerFromDialogHandler = myDH.processUpdateByGettingDbEntitiesAndDelegating(update);
 		
+		if (answerFromDialogHandler == null) {
+			return null;
+		}
+		
 		PresetMessageForSendMessage presetMessage = new PresetMessageForSendMessage(answerFromDialogHandler.getText(), answerFromDialogHandler.getChatId());
 		
 		HttpMessageForTelegramServers messageToReturnToTelegramAPI = new HttpMessageForTelegramServers(presetMessage);
