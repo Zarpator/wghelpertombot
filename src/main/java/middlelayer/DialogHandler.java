@@ -1,6 +1,11 @@
 package middlelayer;
 
 import datalayer.DbChat;
+import datalayer.DbUser;
+import middlelayer.dialogs.AbstractDialog;
+import middlelayer.dialogs.AnswerwithusersownmessageDialog;
+import middlelayer.dialogs.MytaskDialog;
+import middlelayer.dialogs.StartDialog;
 import servicelayer.receiving.telegramobjects.TgmMessage;
 import servicelayer.receiving.telegramobjects.TgmUpdate;
 
@@ -8,7 +13,7 @@ public class DialogHandler {
 
 	DataAccessObject myDAO = new DataAccessObject();
 
-	public MiddlelayerHttpAnswerForTelegram processUpdateAndReturnAppropriateAnswer(TgmUpdate update) {
+	public MiddlelayerHttpAnswerForTelegram processUpdateByGettingDbEntitiesAndDelegating(TgmUpdate update) {
 
 		TgmMessage message = update.getMessage();
 
@@ -25,7 +30,7 @@ public class DialogHandler {
 			messageToReturnToInspector.setChatId(idOfUserWhoSentMessage);
 			return messageToReturnToInspector;
 		}
-		
+
 		DbChat dbChatWhereCommandWasGiven;
 		int idOfChatWhereCommandWasGiven = message.getChat().getId();
 		try {
@@ -37,88 +42,66 @@ public class DialogHandler {
 			messageToReturnToInspector.setChatId(idOfChatWhereCommandWasGiven);
 			return messageToReturnToInspector;
 		}
-		
-		
-		if (chatIsAlreadyInDialog(message.getChat().getId())) {
-			messageToReturnToInspector = getNextMessageInPresentDialog(message);
-		} else {
-			messageToReturnToInspector = getFirstMessageInNewDialog(message, dbUserWhoSentMessage, dbChatWhereCommandWasGiven);
-		}
+
+		// neu (dialog unabhängig von Chatstatus durchführen, User hat ja Eigenschaft
+		// dialogType und dialogNum)
+
+		messageToReturnToInspector = getDialogMessageByUsingSuitingDialog(message, dbUserWhoSentMessage,
+				dbChatWhereCommandWasGiven);
+
+		// alt
+		/*
+		 * if (chatIsAlreadyInDialog(message.getChat().getId())) {
+		 * messageToReturnToInspector = getNextMessageInPresentDialog(message,
+		 * dbUserWhoSentMessage, dbChatWhereCommandWasGiven); } else {
+		 * messageToReturnToInspector = getFirstMessageInNewDialog(message,
+		 * dbUserWhoSentMessage, dbChatWhereCommandWasGiven); }
+		 */
 
 		return messageToReturnToInspector;
 	}
 
-	private MiddlelayerHttpAnswerForTelegram getFirstMessageInNewDialog(TgmMessage message, DbUser userWhoAsked, DbChat chatWhereCommandWasGiven) {
+	private MiddlelayerHttpAnswerForTelegram getDialogMessageByUsingSuitingDialog(TgmMessage message,
+			DbUser dbUserWhoSentMessage, DbChat dbChatWhereCommandWasGiven) {
 
-		switch (message.getText()) {
-		case "/start":
-			return doStartRoutine(userWhoAsked, chatWhereCommandWasGiven);
-		case "/mytask":
-			return getNextTask(userWhoAsked, chatWhereCommandWasGiven);
-		default:
-			return answerWithUsersOwnMessage(message);
-		}
-	}
+		MiddlelayerHttpAnswerForTelegram returnAnswer;
 
-	private MiddlelayerHttpAnswerForTelegram getNextMessageInPresentDialog(TgmMessage incomingMessage) {
-		int senderId = incomingMessage.getFrom().getId();
+		String currentDialogOfChat = dbChatWhereCommandWasGiven.getCurrentOngoingDialog();
 
-		try {
-			DbUser currentUser = myDAO.getDbUserById(senderId);
-
-			return new MiddlelayerHttpAnswerForTelegram(); // hier noch eine Logik einbauen zum Abrufen der nächsten
-															// Nachricht im Dialog in dem spezifischen Chat
-
-		} catch (EntityNotFoundException e) {
-			return null;
-		}
-	}
-
-	private boolean chatIsAlreadyInDialog(int chatId) {
-		DbChat chatToCheck;
-		try {
-			chatToCheck = myDAO.getChatById(chatId);
-		} catch (EntityNotFoundException e) {
-			System.out.println("Chat not found in Database");
-			return false;
-		}
-		return chatToCheck.getIsInDialog();
-	}
-
-	private MiddlelayerHttpAnswerForTelegram getNextTask(DbUser userWhoAsked, DbChat chatWhereCommandWasGiven) {
-		MiddlelayerHttpAnswerForTelegram messageForDialogHandler = new MiddlelayerHttpAnswerForTelegram();
-
-		messageForDialogHandler.setChatId(chatWhereCommandWasGiven.getId());
-
-		String nextTask = userWhoAsked.getNextTask();
-
-		if (nextTask == null) {
-			messageForDialogHandler.setText("Du hast nichts zu tun :)");
+		if (dbChatWhereCommandWasGiven.isInDialog()) {
+			currentDialogOfChat = dbChatWhereCommandWasGiven.getCurrentOngoingDialog();
 		} else {
-			messageForDialogHandler.setText(nextTask);
+			currentDialogOfChat = message.getText();
 		}
-		return messageForDialogHandler;
+
+		AbstractDialog dialogToDo;
+		switch (currentDialogOfChat) {
+		case "/start":
+			dialogToDo = new StartDialog();
+			break;
+		case "/mytask":
+			dialogToDo = new MytaskDialog();
+			break;
+		default:
+			System.out.println("no known command in currentOngoingDialog of the Chat or in Message of the User found");
+			dialogToDo = new AnswerwithusersownmessageDialog();
+			break;
+		}
+
+		returnAnswer = getMessageByGettingSuitingMessageInDialogsMessageList(dialogToDo, dbUserWhoSentMessage,
+				dbChatWhereCommandWasGiven, message);
+
+		return returnAnswer;
 	}
 
-	private MiddlelayerHttpAnswerForTelegram doStartRoutine(DbUser userWhoAsked, DbChat chatWhereCommandWasGiven) {
+	private MiddlelayerHttpAnswerForTelegram getMessageByGettingSuitingMessageInDialogsMessageList(
+			AbstractDialog chosenDialog, DbUser dbUserWhoSentMessage, DbChat dbChatWhereCommandWasGiven,
+			TgmMessage message) {
 
-		MiddlelayerHttpAnswerForTelegram messageForDialogHandler = new MiddlelayerHttpAnswerForTelegram();
+		MiddlelayerHttpAnswerForTelegram returnMessage;
 
-		messageForDialogHandler.setChatId(chatWhereCommandWasGiven.getId());
-		messageForDialogHandler.setText("Hallo! Welche Räume müsst ihr in eurer WG putzen?");
-
-		return messageForDialogHandler;
-	}
-
-	private MiddlelayerHttpAnswerForTelegram answerWithUsersOwnMessage(TgmMessage message) {
-		String name = message.getFrom().getFirst_name();
-		String text = message.getText();
-		int id = message.getChat().getId();
-
-		MiddlelayerHttpAnswerForTelegram returnMessage = new MiddlelayerHttpAnswerForTelegram();
-
-		returnMessage.setChatId(id);
-		returnMessage.setText("Hi " + name + "! Du schriebst: " + text);
+		returnMessage = chosenDialog.doLogicDependentOnCurrentStateInChatAndGetAnswer(dbUserWhoSentMessage,
+				dbChatWhereCommandWasGiven, message);
 
 		return returnMessage;
 	}

@@ -3,6 +3,7 @@ package middlelayer;
 import java.util.ArrayList;
 
 import datalayer.DbChat;
+import datalayer.DbUser;
 import servicelayer.receiving.TgmAnswerWithUpdateArray;
 import servicelayer.receiving.telegramobjects.TgmChat;
 import servicelayer.receiving.telegramobjects.TgmUpdate;
@@ -48,7 +49,7 @@ public class Inspector {
 			myDAO.addNewChat(messageChat);
 		}
 		
-		MiddlelayerHttpAnswerForTelegram answerFromDialogHandler = myDH.processUpdateAndReturnAppropriateAnswer(update);
+		MiddlelayerHttpAnswerForTelegram answerFromDialogHandler = myDH.processUpdateByGettingDbEntitiesAndDelegating(update);
 		
 		PresetMessageForSendMessage presetMessage = new PresetMessageForSendMessage(answerFromDialogHandler.getText(), answerFromDialogHandler.getChatId());
 		

@@ -3,6 +3,7 @@ package middlelayer;
 import java.util.ArrayList;
 
 import datalayer.DbChat;
+import datalayer.DbUser;
 import servicelayer.receiving.telegramobjects.TgmChat;
 import servicelayer.receiving.telegramobjects.TgmUser;
 

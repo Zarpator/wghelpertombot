@@ -1,4 +1,4 @@
-package middlelayer;
+package datalayer;
 
 import lombok.Getter;
 import lombok.Setter;

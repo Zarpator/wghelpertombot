@@ -7,5 +7,13 @@ import lombok.Setter;
 
 public class DbChat {
 	private int id;
-	private boolean isInDialog;
+	private String currentOngoingDialog;
+	
+	public boolean isInDialog() {
+		if (getCurrentOngoingDialog() == null) {
+			return false;
+		} else {
+			return true;
+		}
+	}
 }
