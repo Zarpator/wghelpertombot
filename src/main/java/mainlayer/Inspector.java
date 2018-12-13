@@ -1,7 +1,8 @@
-package middlelayer;
+package mainlayer;
 
 import java.util.ArrayList;
 
+import datalayer.DataAccessObject;
 import datalayer.DbChat;
 import datalayer.DbUser;
 import servicelayer.receiving.TgmAnswerWithUpdateArray;

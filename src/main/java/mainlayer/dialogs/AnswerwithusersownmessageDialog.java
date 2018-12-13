@@ -1,13 +1,15 @@
-package middlelayer.dialogs;
+package mainlayer.dialogs;
 
+import datalayer.DataAccessObject;
 import datalayer.DbChat;
 import datalayer.DbUser;
-import middlelayer.MiddlelayerHttpAnswerForTelegram;
+import mainlayer.MiddlelayerHttpAnswerForTelegram;
 import servicelayer.receiving.telegramobjects.TgmMessage;
 
 public class AnswerwithusersownmessageDialog extends AbstractFullDialog {
 
-	public AnswerwithusersownmessageDialog() {
+	public AnswerwithusersownmessageDialog(TgmMessage message, DataAccessObject dao, DbChat chat, DbUser user) {
+		super(message, dao, chat, user);
 		this.mySpecificDialogStates = new DialogState[] {
 				new FirstDialogState()
 		};
@@ -16,11 +18,10 @@ public class AnswerwithusersownmessageDialog extends AbstractFullDialog {
 	private class FirstDialogState extends DialogState {
 
 		@Override
-		public MiddlelayerHttpAnswerForTelegram doLogic(DbUser dbUserWhoSentMessage, DbChat dbChatWhereCommandWasGiven,
-				TgmMessage message) {
-			String name = message.getFrom().getFirst_name();
-			String text = message.getText();
-			int id = message.getChat().getId();
+		public MiddlelayerHttpAnswerForTelegram doLogic() {
+			String name = messageToProcess.getFrom().getFirst_name();
+			String text = messageToProcess.getText();
+			int id = messageToProcess.getChat().getId();
 
 			MiddlelayerHttpAnswerForTelegram returnMessage = new MiddlelayerHttpAnswerForTelegram();
 

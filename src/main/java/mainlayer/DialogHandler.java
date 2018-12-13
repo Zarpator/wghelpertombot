@@ -1,11 +1,12 @@
-package middlelayer;
+package mainlayer;
 
+import datalayer.DataAccessObject;
 import datalayer.DbChat;
 import datalayer.DbUser;
-import middlelayer.dialogs.AbstractFullDialog;
-import middlelayer.dialogs.AnswerwithusersownmessageDialog;
-import middlelayer.dialogs.MytaskDialog;
-import middlelayer.dialogs.StartDialog;
+import mainlayer.dialogs.AbstractFullDialog;
+import mainlayer.dialogs.AnswerwithusersownmessageDialog;
+import mainlayer.dialogs.MyTaskDialog;
+import mainlayer.dialogs.StartDialog;
 import servicelayer.receiving.telegramobjects.TgmMessage;
 import servicelayer.receiving.telegramobjects.TgmUpdate;
 
@@ -63,16 +64,16 @@ public class DialogHandler {
 		AbstractFullDialog dialogToDo;
 		switch (currentDialogOfChat) {
 		case "/start":
-			dialogToDo = new StartDialog();
+			dialogToDo = new StartDialog(message, myDAO, dbChatWhereCommandWasGiven, dbUserWhoSentMessage);
 			dbChatWhereCommandWasGiven.setCurrentOngoingDialog("/start");
 			break;
 		case "/mytask":
-			dialogToDo = new MytaskDialog();
+			dialogToDo = new MyTaskDialog(message, myDAO, dbChatWhereCommandWasGiven, dbUserWhoSentMessage);
 			dbChatWhereCommandWasGiven.setCurrentOngoingDialog("/mytask");
 			break;
 		default:
 			System.out.println("no known command in currentOngoingDialog of the Chat or in Message of the User found");
-			dialogToDo = new AnswerwithusersownmessageDialog();
+			dialogToDo = new AnswerwithusersownmessageDialog(message, myDAO, dbChatWhereCommandWasGiven, dbUserWhoSentMessage);
 			dbChatWhereCommandWasGiven.setCurrentOngoingDialog("/getanswerwithusersownmessage");
 			break;
 		}
@@ -89,8 +90,7 @@ public class DialogHandler {
 
 		MiddlelayerHttpAnswerForTelegram returnMessage;
 
-		returnMessage = chosenDialog.doLogicDependentOnCurrentStateInChatAndGetAnswer(dbUserWhoSentMessage,
-				dbChatWhereCommandWasGiven, message);
+		returnMessage = chosenDialog.doLogicDependentOnCurrentStateInChatAndGetAnswer();
 
 		return returnMessage;
 	}

@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import middlelayer.Inspector;
+import mainlayer.Inspector;
 import servicelayer.receiving.TgmAnswerWithMessage;
 import servicelayer.receiving.TgmAnswerWithUpdateArray;
 import servicelayer.sending.HttpMessageForTelegramServers;
@@ -38,9 +38,6 @@ public class Application {
 					System.out.println("Received empty Message from Inspector");
 				}
 			}
-			
-			myInspector.printAllDbChatsToConsole();
-			myInspector.printAllDbUsersToConsole();
 
 			try {
 				TimeUnit.SECONDS.sleep(1);
